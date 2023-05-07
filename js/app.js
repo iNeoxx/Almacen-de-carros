@@ -20,46 +20,92 @@ let datosBusqueda = {
     transmision:'',
 }
 
-//eventos
-
-document.addEventListener("DOMContentLoaded", () => {
-    mostrarAutos(autos);
-    llenarSelectYear();
-});
-
+// Agregar evento onchange a cada select
 marca.addEventListener('change', e => {
     datosBusqueda.marca = e.target.value;
+    guardarFiltro('marca', datosBusqueda.marca);
     filtrarAuto();
 });
 
 year.addEventListener('change', e => {
     datosBusqueda.year = e.target.value;
+    guardarFiltro('year', datosBusqueda.year);
     filtrarAuto();
 });
 
 minimo.addEventListener('change', e => {
     datosBusqueda.minimo = e.target.value;
+    guardarFiltro('minimo', datosBusqueda.minimo);
     filtrarAuto();
 });
 
 maximo.addEventListener('change', e => {
     datosBusqueda.maximo = e.target.value;
+    guardarFiltro('maximo', datosBusqueda.maximo);
     filtrarAuto();
 });
 
 puertas.addEventListener('change', e => {
     datosBusqueda.puertas = e.target.value;
+    guardarFiltro('puertas', datosBusqueda.puertas);
     filtrarAuto();
 });
 
 color.addEventListener('change', e => {
     datosBusqueda.color = e.target.value;
+    guardarFiltro('color', datosBusqueda.color);
     filtrarAuto();
 });
 
 transmision.addEventListener('change', e => {
     datosBusqueda.transmision = e.target.value;
+    guardarFiltro('transmision', datosBusqueda.transmision);
     filtrarAuto();
+});
+
+//funciones
+function guardarFiltro(nombreFiltro, valorFiltro) {
+    localStorage.setItem(nombreFiltro, valorFiltro);
+}
+
+function cargarFiltro(nombreFiltro, elementoSelect) {
+    const valorFiltro = localStorage.getItem(nombreFiltro);
+    if (valorFiltro && !datosBusqueda[nombreFiltro]) {
+      // Solo asigna el valor del localStorage si no hay un valor previo en datosBusqueda
+      elementoSelect.value = valorFiltro;
+      datosBusqueda[nombreFiltro] = valorFiltro;
+    }
+  }
+
+//eventos
+
+document.addEventListener("DOMContentLoaded", () => {
+    // cargar valores guardados en localStorage para cada select
+    cargarFiltro('marca', marca);
+    cargarFiltro('year', year);
+    cargarFiltro('minimo', minimo);
+    cargarFiltro('maximo', maximo);
+    cargarFiltro('puertas', puertas);
+    cargarFiltro('color', color);
+    cargarFiltro('transmision', transmision);
+
+    // mostrarAutos(baseDeDatosAutos);
+    // llenarSelectYear();
+    // Si hay autos almacenados en el localStorage
+  if (localStorage.getItem("autos")) {
+    // Obtener los autos del localStorage y convertirlos de nuevo a un objeto JavaScript
+    const autosGuardados = JSON.parse(localStorage.getItem("autos"));
+    // Mostrar los autos en la página
+    mostrarAutos(autosGuardados);
+  } else {
+    // Mostrar un mensaje indicando que no hay ningún auto almacenado en el localStorage
+    const noHayAutos = document.createElement("div");
+    noHayAutos.classList.add("alerta");
+    noHayAutos.textContent = "No hay autos almacenados en el Local Storage";
+    resultado.appendChild(noHayAutos);
+  }
+
+  llenarSelectYear();
 });
 
 //funciones
@@ -75,7 +121,10 @@ function mostrarAutos(autos) {
         - Precio: ${precio} - Color: ${color} - Modelo: ${modelo}</p> <img src="${foto}">
         `;
         resultado.appendChild(autoHTML);
-    })
+    });
+
+    // Guardar los carros en el LocalStorage
+    localStorage.setItem('autos', JSON.stringify(autos));
 }
 
 function llenarSelectYear(){
@@ -88,24 +137,25 @@ function llenarSelectYear(){
 }
 
 function filtrarAuto(){
-    const resultado = autos.filter(filtrarMarca)
-    .filter(filtrarYear)
-    .filter(filtrarMinimo)
-    .filter(filtrarMaximo)
-    .filter(filtrarPuertas)
-    .filter(filtrarColor)
-    .filter(filtrarTransmision);
     
-    if(resultado.length){
-        mostrarAutos(resultado);
-        localStorage.setItem('autos', JSON.stringify(resultado));
+    let autosAlmacenados = JSON.parse(localStorage.getItem('autos'));
+    const resultado = [...baseDeDatosAutos, ...autosAlmacenados]
+      .filter(filtrarMarca)
+      .filter(filtrarYear)
+      .filter(filtrarMinimo)
+      .filter(filtrarMaximo)
+      .filter(filtrarPuertas)
+      .filter(filtrarColor)
+      .filter(filtrarTransmision);
+  
+    if (resultado.length) {
+      mostrarAutos(resultado);
+      localStorage.setItem('autos', JSON.stringify(resultado));
+    } else {
+      noHayResultado();
+      localStorage.setItem('autos', JSON.stringify([]));
     }
-    else{
-        noHayResultado();
-        localStorage.setItem('autos', null);
-    }
-    
-}
+  }
 
 function noHayResultado(){
     limpiarHTML();
@@ -176,3 +226,238 @@ function limpiarHTML(){
     resultado.removeChild(resultado.firstChild);
    }
 }
+
+//db
+const baseDeDatosAutos  = [
+	{
+		marca: 'BMW',
+		modelo: 'Serie 3',
+		year: 2020,
+		precio: 30000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto:  '/fotos/bmwserie3Blanco.png'  
+	},
+	{ 
+        marca: 'Audi', 
+        modelo: 'A4', 
+        year: 2020, 
+        precio: 40000, 
+        puertas: 4, 
+        color: 'Negro', 
+        transmision: 'automatico',
+		foto: '/fotos/audiA42020Negro.png'  
+    },
+	{
+		marca: 'Ford',
+		modelo: 'Mustang',
+		year: 2015,
+		precio: 20000,
+		puertas: 2,
+		color: 'Negro',
+		transmision: 'automatico',
+		foto: '/fotos/fordMustang2015.png'  
+	},
+	{ 
+        marca: 'Audi', 
+        modelo: 'A6', 
+        year: 2020, 
+        precio: 35000, 
+        puertas: 4, 
+        color: 'Negro', 
+        transmision: 'automatico',
+		foto: '/fotos/audiA6.png'   
+    },
+	{
+		marca: 'BMW',
+		modelo: 'Serie 5',
+		year: 2016,
+		precio: 70000,
+		puertas: 4,
+		color: 'Rojo',
+		transmision: 'automatico',
+		foto: '/fotos/bmwm5.png'  
+	},
+	{
+		marca: 'Mercedes Benz',
+		modelo: 'Clase C',
+		year: 2015,
+		precio: 25000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto: '/fotos/mercedesc.png'  
+	},
+	{
+		marca: 'Chevrolet',
+		modelo: 'Camaro',
+		year: 2018,
+		precio: 60000,
+		puertas: 2,
+		color: 'Rojo',
+		transmision: 'manual',
+		foto: '/fotos/camarored.png'  
+	},
+	{ 
+        marca: 'Ford', 
+        modelo: 'Mustang', 
+        year: 2019, 
+        precio: 80000, 
+        puertas: 2, 
+        color: 'Rojo', 
+        transmision: 'manual',
+		foto: '/fotos/mustangred.png'  
+    },
+	{
+		marca: 'Dodge',
+		modelo: 'Challenger',
+		year: 2020,
+		precio: 40000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto: '/fotos/dodgeblanco.png'  
+	},
+	{ 
+        marca: 'Audi', 
+        modelo: 'A3', 
+        year: 2017, 
+        precio: 55000, 
+        puertas: 2, 
+        color: 'Negro', 
+        transmision: 'manual',
+		foto: '/fotos/audiA42020Negro.png'  
+    },
+	{
+		marca: 'Dodge',
+		modelo: 'Challenger',
+		year: 2020,
+		precio: 25000,
+		puertas: 2,
+		color: 'Rojo',
+		transmision: 'manual',
+		foto: '/fotos/dodgerojo.png'  
+	},
+	{
+		marca: 'Mercedes Benz',
+		modelo: 'Clase C',
+		year: 2018,
+		precio: 45000,
+		puertas: 4,
+		color: 'Azul',
+		transmision: 'automatico',
+		foto: '/fotos/mercedesazul.png'  
+	},
+	{
+		marca: 'BMW',
+		modelo: 'Serie 5',
+		year: 2019,
+		precio: 90000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto: '/fotos/bmwserie3Blanco.png'  
+	},
+	{ 
+        marca: 'Ford', 
+        modelo: 'Mustang', 
+        year: 2017, 
+        precio: 60000, 
+        puertas: 2, 
+        color: 'Negro', 
+        transmision: 'manual',
+		foto: '/fotos/fordMustang2015.png'  
+    },
+	{
+		marca: 'Dodge',
+		modelo: 'Challenger',
+		year: 2015,
+		precio: 35000,
+		puertas: 2,
+		color: 'Azul',
+		transmision: 'automatico',
+		foto: '/fotos/dodgeazul.png'  
+	},
+	{
+		marca: 'BMW',
+		modelo: 'Serie 3',
+		year: 2018,
+		precio: 50000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto: '/fotos/bmwserie3Blanco.png'  
+	},
+	{
+		marca: 'BMW',
+		modelo: 'Serie 5',
+		year: 2017,
+		precio: 80000,
+		puertas: 4,
+		color: 'Negro',
+		transmision: 'automatico',
+		foto: '/fotos/bmwserie5negro.png'  
+	},
+	{
+		marca: 'Mercedes Benz',
+		modelo: 'Clase C',
+		year: 2018,
+		precio: 40000,
+		puertas: 4,
+		color: 'Blanco',
+		transmision: 'automatico',
+		foto: '/fotos/mercedesc.png'  
+	},
+	{ 
+        marca: 'Audi', 
+        modelo: 'A4', 
+        year: 2016, 
+        precio: 30000, 
+        puertas: 4, 
+        color: 'Azul', 
+        transmision: 'automatico',
+		foto: '/fotos/audia4azul.png'  
+    },
+    { 
+        marca: 'Nissan', 
+        modelo: 'Sentra', 
+        year: 2020, 
+        precio: 12000, 
+        puertas: 4, 
+        color: 'Blanco', 
+        transmision: 'manual',
+		foto: '/fotos/nissansentrablanco.png'  
+    },
+    { 
+        marca: 'Honda', 
+        modelo: 'Civic', 
+        year: 2018, 
+        precio: 13000, 
+        puertas: 2, 
+        color: 'Negro', 
+        transmision: 'automatico',
+		foto: '/fotos/hondanegro.png'  
+    },
+    { 
+        marca: 'Toyota', 
+        modelo: 'Corolla', 
+        year: 2020, 
+        precio: 17000, 
+        puertas: 4, 
+        color: 'Rojo', 
+        transmision: 'manual',
+		foto: '/fotos/toyotarojo.png'  
+    },
+];
+
+function cargarAutosDesdeLocalStorage() {
+    const autosEnLocalStorage = JSON.parse(localStorage.getItem("autos"));
+    if (autosEnLocalStorage && autosEnLocalStorage.length) {
+      mostrarAutos(autosEnLocalStorage);
+    } else {
+      mostrarAutos(baseDeDatosAutos);
+    }
+  }
+  window.addEventListener("load", cargarAutosDesdeLocalStorage);
+
